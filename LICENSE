@@ -1,0 +1,38 @@
+FunSportWorld Android
+Copyright (c) 2026 <YOUR NAME / GITHUB HANDLE>
+
+This project is an Android port and derivative work of FunSportWorld
+(https://github.com/Funrestan/FunSportWorld), Copyright (c) 2026 YanamiNeko.
+The upstream project and this derivative work are licensed under the
+Creative Commons Attribution-NonCommercial 4.0 International License
+(CC BY-NC 4.0).
+
+You are free to:
+  - Share — copy and redistribute the material in any medium or format
+  - Adapt — remix, transform, and build upon the material
+
+Under the following terms:
+  - Attribution — You must give appropriate credit to YanamiNeko and the
+    upstream project (https://github.com/Funrestan/FunSportWorld), provide a
+    link to this license, and indicate if changes were made. You must also
+    retain the attribution to NekoSportsWorldTool (YanamiNeko) and @L1Xu4n
+    that appears in the upstream project's README.
+  - NonCommercial — You may not use the material for commercial purposes.
+    This includes, but is not limited to, selling the app, paid "run for you"
+    services, advertising monetization, or bundling it into a commercial
+    product.
+
+No warranties are given. The licensor provides the material "as is" and
+disclaims liability for damages arising from its use, to the extent permitted
+by law.
+
+The full legal text of CC BY-NC 4.0 is included at:
+  LICENSES/CC-BY-NC-4.0.txt
+The upstream project's original license notice is preserved at:
+  LICENSES/FunSportWorld-upstream-LICENSE.txt
+
+This is a source-available, non-commercial license. It is not an OSI-approved
+open-source license because of the NonCommercial restriction.
+
+Third-party components included in or used by this project have their own
+licenses; see THIRD_PARTY_NOTICES.md and the files in LICENSES/.

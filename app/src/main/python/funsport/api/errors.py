@@ -1,0 +1,33 @@
+"""保留接口上下文的业务错误，不包含请求正文、凭据或签名 URL。"""
+from urllib.parse import urlsplit
+
+
+class BusinessError(RuntimeError):
+    """区分服务器业务拒绝与本地参数检查失败。"""
+
+    def __init__(self, code, message, path):
+        """记录业务码和去掉查询串的接口路径，并补充 11016 的操作边界。"""
+        self.code = code
+        self.path = urlsplit(str(path)).path
+        self.message = str(message or "(无消息)")
+        lines = ["业务错误 {}: {}".format(code, self.message), "接口：" + self.path]
+        if str(code) == "11016":
+            if self.path.endswith("/runModePolicy"):
+                lines.append("失败阶段：获取跑步策略；本次操作尚未生成或提交记录。")
+                lines.append("此请求没有轨迹开始时间字段，修改方案开始时间不会改变该请求。")
+            elif self.path.endswith("/runnings/save/record"):
+                lines.append("失败阶段：提交跑步记录；服务端返回了拒绝。")
+            elif self.path.endswith("/get/1/distance/1"):
+                lines.append("失败阶段：获取打卡点；本次查询没有提交跑步记录。")
+            lines.append("跳过本地时间检查不会改变服务器的计分跑开放时段。")
+            lines.append("只测试路线可使用轨迹预览（仍需高德服务）；在线计分操作请按官方 App 的跑步指标在开放时段进行。")
+        lowered = self.message.lower()
+        token_missing = ("token" in lowered and any(
+            word in self.message for word in ("不存在", "无效", "失效", "过期", "错误", "找不到")))
+        login_missing = any(
+            word in self.message for word in ("未登录", "登录失效", "登录已过期", "请重新登录"))
+        if token_missing or login_missing:
+            lines.append("本地保存的服务器会话可能已失效（服务器未找到这枚 token）。")
+            lines.append("请重新登录当前账号；记住密码时登录框密码可留空。多账号切换只换本机会话，"
+                         "若服务端只保留最近一次有效 token，切回后也需要重新登录。")
+        super().__init__("\n".join(lines))

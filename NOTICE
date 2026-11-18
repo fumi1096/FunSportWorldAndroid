@@ -1,0 +1,49 @@
+# NOTICE / 归属与修改说明
+
+本仓库是 **FunSportWorld 的 Android 移植/二次开发版本**，不是官方客户端，也与
+运动世界校园版官方没有任何关联。
+
+## 上游项目
+
+- 项目：FunSportWorld
+- 作者：**YanamiNeko**（GitHub: [Funrestan](https://github.com/Funrestan)）
+- 仓库：https://github.com/Funrestan/FunSportWorld
+- 许可：**CC BY-NC 4.0**（署名—非商业性使用 4.0 国际）
+- 本移植版参考的上游提交：`41359e518763e1cb5e5731249323d44378f8a124`（main，2026-09-25）
+- 上游许可证原文：`LICENSES/FunSportWorld-upstream-LICENSE.txt`
+
+上游 README 同时声明其路径规划与通讯协议思路参考了：
+
+- **NekoSportsWorldTool**，作者 **YanamiNeko**：
+  https://github.com/YanamiNeko/NekoSportsWorldTool
+  （仓库已归档；本仓库未发现该仓库的独立许可证文件，仅按上游要求保留署名）
+- **@L1Xu4n**：提出接入高德地图 API 生成真实道路的改进方案：
+  https://github.com/L1Xu4n
+
+## 本安卓移植版的主要修改
+
+上游是 Python CLI / tkinter 桌面程序；本仓库将其核心能力移植到 Android：
+
+1. **界面完全重写**：使用 Kotlin + Jetpack Compose / Material 3，新增地图、路线、
+   记录、我的四个主页面，以及生成方案、登录、关于、手绘路线编辑器等全屏页面。
+2. **Python 核心通过 Chaquopy 复用**：`app/src/main/python/funsport/` 是上游 Python
+   核心的 Android 适配副本；删除/替换了 tkinter GUI、桌面地图预览、GT4 图片分析等
+   不适用于 Android 的部分；新增 `android_backend.py` 作为 JSON-only 桥接层。
+3. **去除原生 Python 依赖**：新增纯 Python AES-128 / RSA PKCS#1 v1.5 模块替代
+   PyCryptodome；新增 `requests.py`（基于 urllib 的 requests 子集）；
+   GT4 缺口识别改为 Kotlin `GapMatcher`（灰度→高斯→Canny→NCC）。
+4. **触屏手绘路线**：新增点击加点、拖动微调、长按删除、撤销/重做、自动闭合平滑、
+   草稿自动保存、本机路线库、与桌面端兼容的 JSON 导入导出/分享。
+5. **Android 定位**：新增运行时定位权限与手机定位默认校园基准点，经纬度仍可手动修改。
+6. **构建与工程化**：Gradle/AGP/Chaquopy 配置、Gradle wrapper、JVM 单元测试、
+   
+   宿主机加密/HTTP 兼容性自检、GitHub Actions 构建工作流。
+7. **文案与本地化**：所有界面文字改为中文，新增开放源代码许可与上游署名页面。
+
+## 地图与第三方数据
+
+- 地图瓦片来自高德地图（`webrd0{1-4}.is.autonavi.com`，GCJ-02），**不包含在本仓库中**，
+  由 App 运行时联网请求；版权归高德所有，使用需遵守高德服务条款。
+- 上游协议、加密、轨迹算法与部分业务逻辑来自 FunSportWorld / NekoSportsWorldTool；
+  本仓库按 CC BY-NC 4.0 的非商业约束发布。
+- 其他第三方组件见 `THIRD_PARTY_NOTICES.md`。

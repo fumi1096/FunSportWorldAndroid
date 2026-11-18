@@ -1,0 +1,47 @@
+.gradle/
+gradle-home/
+android-home/
+.kotlin/
+build/
+local.properties
+
+# Android Studio / IntelliJ
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Signing materials and local builds
+# app/keystore/debug.keystore is deliberately committed: it is a PUBLIC debug
+# key (alias androiddebugkey / password android) so fresh clones produce the
+# same debug signature. Never use it for release builds.
+*.jks
+*.keystore
+!app/keystore/debug.keystore
+dist/
+*.apk
+*.aab
+
+# Runtime data (credentials / device identity / caches)
+identity.json
+session.json
+config.json
+points_cache.json
+campus_loop_bd.json
+.funsport/
+
+# Logs and temporary output
+*.log
+__pycache__/
+tools/__pycache__/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+credentials.*

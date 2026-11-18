@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -55,6 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.funsportworld.android.data.LatLon
 import com.funsportworld.android.data.RoutePayload
 import com.funsportworld.android.map.AmapMap
+import com.funsportworld.android.map.MAX_ZOOM
+import com.funsportworld.android.map.MIN_ZOOM
 import com.funsportworld.android.map.MapCamera
 import com.funsportworld.android.map.MapViewport
 import com.funsportworld.android.map.fitCamera
@@ -180,7 +184,14 @@ fun RouteEditorScreen(
                     editorVm.selectVertex(null)
                 }
             },
-            onTapVertex = { index -> editorVm.selectVertex(index) },
+            // In ADD mode every tap places a point; selecting is explicit to
+            // MOVE mode. This avoids a tap near an existing vertex being
+            // swallowed as a selection instead of adding the requested point.
+            onTapVertex = if (editor.mode == EditorMode.MOVE) {
+                { index -> editorVm.selectVertex(index) }
+            } else {
+                null
+            },
             onLongPressVertex = { index -> editorVm.deleteVertex(index) },
             onVertexDrag = { index, point ->
                 if (!draggingVertex) {
@@ -264,16 +275,31 @@ fun RouteEditorScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                fitCamera(allPoints, viewport)?.let { camera = it }
-            },
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 300.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(Icons.Filled.MyLocation, contentDescription = "适应路线")
+            MapZoomButton("+") {
+                camera = camera.copy(
+                    zoom = (camera.zoom + 0.8).coerceIn(MIN_ZOOM, MAX_ZOOM),
+                )
+            }
+            MapZoomButton("−") {
+                camera = camera.copy(
+                    zoom = (camera.zoom - 0.8).coerceIn(MIN_ZOOM, MAX_ZOOM),
+                )
+            }
+            FloatingActionButton(
+                onClick = {
+                    fitCamera(allPoints, viewport)?.let { camera = it }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                Icon(Icons.Filled.MyLocation, contentDescription = "适应路线")
+            }
         }
 
         // Bottom editing panel.
@@ -445,6 +471,31 @@ fun RouteEditorScreen(
                 TextButton(onClick = { showClearDialog = false }) { Text("取消") }
             },
         )
+    }
+}
+
+@Composable
+private fun MapZoomButton(label: String, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .size(46.dp)
+            .clickable(onClick = onClick),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+        shadowElevation = 2.dp,
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 

@@ -71,8 +71,9 @@ import kotlin.math.sinh
 import kotlin.math.tan
 
 private const val TILE_SIZE = 256.0
-private const val MIN_ZOOM = 3.0
-private const val MAX_ZOOM = 19.0
+/** Supported zoom range, also used by the on-screen +/- controls. */
+const val MIN_ZOOM = 3.0
+const val MAX_ZOOM = 19.0
 
 data class MapCamera(val center: LatLon, val zoom: Double) {
     fun withCenter(lat: Double, lon: Double): MapCamera = copy(center = LatLon(lat, lon))
@@ -271,6 +272,15 @@ fun AmapMap(
     val latestCamera = rememberUpdatedState(camera)
     val latestVertices = rememberUpdatedState(sketchVertices)
     val latestDragEnabled = rememberUpdatedState(vertexDragEnabled)
+    // A pointerInput block captures its first lambda; route these through
+    // rememberUpdatedState so switching ADD/MOVE (or a new callback) takes
+    // effect without recreating the gesture detector.
+    val latestCameraChange = rememberUpdatedState(onCameraChange)
+    val latestTap = rememberUpdatedState(onTap)
+    val latestTapVertex = rememberUpdatedState(onTapVertex)
+    val latestLongPressVertex = rememberUpdatedState(onLongPressVertex)
+    val latestVertexDrag = rememberUpdatedState(onVertexDrag)
+    val latestVertexDragEnd = rememberUpdatedState(onVertexDragEnd)
 
     val tileKeys by remember(camera, viewport) {
         derivedStateOf { visibleTiles(camera, viewport) }
@@ -284,7 +294,8 @@ fun AmapMap(
         }
     }
 
-    val touchRadiusPx = with(density) { 24.dp.toPx() }
+    // Finger-friendly hit area for vertex selection/drag.
+    val touchRadiusPx = with(density) { 30.dp.toPx() }
 
     Canvas(
         modifier = modifier
@@ -299,12 +310,12 @@ fun AmapMap(
                     verticesState = latestVertices,
                     dragEnabledState = latestDragEnabled,
                     touchRadiusPx = touchRadiusPx,
-                    onCameraChange = onCameraChange,
-                    onTap = onTap,
-                    onTapVertex = onTapVertex,
-                    onLongPressVertex = onLongPressVertex,
-                    onVertexDrag = onVertexDrag,
-                    onVertexDragEnd = onVertexDragEnd,
+                    onCameraChange = { latestCameraChange.value(it) },
+                    onTap = { point -> latestTap.value?.invoke(point) },
+                    onTapVertex = { index -> latestTapVertex.value?.invoke(index) },
+                    onLongPressVertex = { index -> latestLongPressVertex.value?.invoke(index) },
+                    onVertexDrag = { index, point -> latestVertexDrag.value?.invoke(index, point) },
+                    onVertexDragEnd = { latestVertexDragEnd.value?.invoke() },
                     viewport = { viewport },
                 )
             },
@@ -515,6 +526,11 @@ private suspend fun PointerInputScope.handleMapGestures(
     viewport: () -> MapViewport,
 ) {
     val touchSlop = viewConfiguration.touchSlop
+    // Real fingers often drift a few pixels during a tap. Delaying map panning
+    // until this larger threshold keeps those touches as taps (add/select)
+    // instead of turning them into a pan. Vertex dragging still uses the
+    // smaller system touch slop.
+    val tapSlop = touchSlop * 2.2f
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         val camera = cameraState.value
@@ -533,38 +549,51 @@ private suspend fun PointerInputScope.handleMapGestures(
             return Offset(x, y)
         }
 
+        // Hit-testing is independent of drag mode so a simple tap always selects
+        // a route point; dragging is only enabled when the caller allows it.
         var hitVertex: Int? = null
-        if (dragEnabledState.value && onVertexDrag != null) {
-            var best = touchRadiusPx
-            vertices.forEachIndexed { index, point ->
-                val distance = (screenOf(point) - down.position).getDistance()
-                if (distance <= best) {
-                    best = distance
-                    hitVertex = index
-                }
+        var best = touchRadiusPx
+        vertices.forEachIndexed { index, point ->
+            val distance = (screenOf(point) - down.position).getDistance()
+            if (distance <= best) {
+                best = distance
+                hitVertex = index
             }
         }
+        val canDragVertex = dragEnabledState.value && onVertexDrag != null
 
         var lastPosition = down.position
         var moved = false
         var longPressFired = false
         val downTime = down.uptimeMillis
-        var draggingVertex = hitVertex != null
+        var draggingVertex = hitVertex != null && canDragVertex
         var latestVertexPoint: LatLon? = null
+        // The Compose state can lag one frame behind, which loses increments
+        // during a fast pinch. Keep a local camera current for this gesture.
+        var workingCamera = camera
 
         while (true) {
             val event: PointerEvent = awaitPointerEvent()
             val changes = event.changes
             if (changes.isEmpty()) break
             if (changes.size >= 2) {
+                val current = workingCamera
                 val zoomChange = event.calculateZoom()
                 val pan = event.calculatePan()
+                var next = current
                 if (zoomChange != 1f) {
-                    val newZoom = (cameraState.value.zoom + log2(zoomChange.toDouble())).coerceIn(MIN_ZOOM, MAX_ZOOM)
-                    onCameraChange(cameraState.value.copy(zoom = newZoom))
+                    val newZoom = (current.zoom + log2(zoomChange.toDouble()))
+                        .coerceIn(MIN_ZOOM, MAX_ZOOM)
+                    next = next.copy(zoom = newZoom)
                 }
                 if (pan != Offset.Zero) {
-                    panCamera(cameraState.value, pan, viewportValue, onCameraChange)
+                    // Apply zoom and pan in one camera update; updating twice with
+                    // a stale `cameraState.value` would discard the zoom change.
+                    next = panCamera(next, pan)
+                }
+                if (next != current) {
+                    workingCamera = next
+                    onCameraChange(next)
                 }
                 changes.forEach { it.consume() }
                 moved = true
@@ -573,15 +602,18 @@ private suspend fun PointerInputScope.handleMapGestures(
             }
             val change: PointerInputChange = changes.first()
             val delta = change.position - lastPosition
-            if (!moved && delta.getDistance() > touchSlop) moved = true
+            val moveThreshold = if (draggingVertex) touchSlop else tapSlop
+            if (!moved && delta.getDistance() > moveThreshold) moved = true
 
             if (!moved && !longPressFired && change.uptimeMillis - downTime > 550) {
                 // Long-press must be checked before the drag branch: a touch
                 // that starts on a vertex is in "dragging" state from the very
-                // beginning, even when the finger has not moved yet.
-                longPressFired = true
+                // beginning, even when the finger has not moved yet. A long
+                // press on empty map must not swallow the tap: slow taps are
+                // common, and they should still add a point on release.
                 val vertexIndex = hitVertex
                 if (vertexIndex != null) {
+                    longPressFired = true
                     draggingVertex = false
                     onLongPressVertex?.invoke(vertexIndex)
                 }
@@ -591,7 +623,7 @@ private suspend fun PointerInputScope.handleMapGestures(
                     if (vertexIndex != null) {
                         val target = screenToLatLon(
                             change.position.x, change.position.y,
-                            cameraState.value, viewportValue,
+                            workingCamera, viewportValue,
                         )
                         latestVertexPoint = target
                         onVertexDrag?.invoke(vertexIndex, target)
@@ -599,7 +631,8 @@ private suspend fun PointerInputScope.handleMapGestures(
                     change.consume()
                 }
             } else if (moved) {
-                panCamera(cameraState.value, delta, viewportValue, onCameraChange)
+                workingCamera = panCamera(workingCamera, delta)
+                onCameraChange(workingCamera)
                 change.consume()
             }
             lastPosition = change.position
@@ -609,12 +642,20 @@ private suspend fun PointerInputScope.handleMapGestures(
                     onVertexDragEnd?.invoke()
                     draggingVertex = false
                 }
-                if (!moved && !longPressFired) {
-                    val tap = screenToLatLon(change.position.x, change.position.y, cameraState.value, viewportValue)
+                if (!longPressFired) {
                     val vertexIndex = hitVertex
                     if (vertexIndex != null && onTapVertex != null) {
+                        // Starting a touch on a vertex always selects it; a drag
+                        // additionally moved it. This makes selection forgiving
+                        // on real fingers that move a few pixels.
                         onTapVertex.invoke(vertexIndex)
-                    } else {
+                    } else if (!moved) {
+                        val tap = screenToLatLon(
+                            change.position.x,
+                            change.position.y,
+                            workingCamera,
+                            viewportValue,
+                        )
                         onTap?.invoke(tap)
                     }
                 }
@@ -624,19 +665,14 @@ private suspend fun PointerInputScope.handleMapGestures(
     }
 }
 
-private fun panCamera(
-    camera: MapCamera,
-    pan: Offset,
-    viewport: MapViewport,
-    onCameraChange: (MapCamera) -> Unit,
-) {
+private fun panCamera(camera: MapCamera, pan: Offset): MapCamera {
     val tileZoom = floor(camera.zoom).toInt().coerceIn(0, 19)
     val scale = Math.pow(2.0, camera.zoom - tileZoom).toFloat()
     val centerX = Mercator.lonToX(camera.center.lon, tileZoom.toDouble()).toFloat() - pan.x / scale
     val centerY = Mercator.latToY(camera.center.lat, tileZoom.toDouble()).toFloat() - pan.y / scale
     val lon = Mercator.xToLon(centerX.toDouble(), tileZoom.toDouble()).coerceIn(-180.0, 180.0)
     val lat = Mercator.yToLat(centerY.toDouble(), tileZoom.toDouble()).coerceIn(-85.0, 85.0)
-    onCameraChange(MapCamera(LatLon(lat, lon), camera.zoom))
+    return MapCamera(LatLon(lat, lon), camera.zoom)
 }
 
 private fun screenToLatLon(

@@ -12,8 +12,8 @@ body:
     id: version
     attributes:
       label: 应用版本
-      description: 设置/关于页显示的版本，例如 1.1.0 (2)
-      placeholder: "1.1.0 (2)"
+      description: 设置/关于页显示的版本，例如 1.1.2 (4)
+      placeholder: "1.1.2 (4)"
     validations:
       required: true
   - type: input
@@ -46,3 +46,4 @@ body:
       description: 请先打码账号、手机号、token 等敏感信息。
     validations:
       required: false
+

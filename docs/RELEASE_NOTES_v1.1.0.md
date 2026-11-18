@@ -8,7 +8,9 @@ Android 移植版（非官方、非商业）首个包含手机定位的版本。
 - SHA-256：`1d01dd573628c90d5f3b49a212ae1a7667f18d0062a892ab223e270ee86d2a1d`
 - 要求：Android 7.0（API 24）及以上；arm64-v8a / x86_64
 - 安装：`adb install -r FunSportWorld-Android-1.1.0-debug.apk`
-  或把 APK 传到手机点击安装；已有旧版无法覆盖时先卸载“FunSportWorld 安卓”。
+  或把 APK 传到手机点击安装。**请覆盖安装，不要卸载或清除数据**：覆盖升级会保留
+  `files/funsport/identity.json`（设备身份）与 `session.json`（登录状态）；
+  卸载/清除数据会删除它们。
 
 登录页标题会显示 `· v1.1.0` 以确认版本。
 

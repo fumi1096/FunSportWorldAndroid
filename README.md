@@ -4,7 +4,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-blue)
 ![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4)
 ![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-lightgrey)
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.2-blue)
 
 FunSportWorld 的 Android 移植与二次开发版本：登录运动世界校园版、读取校园打卡点、
 按学校策略生成跑步方案、预览/提交、查看跑步记录，并把桌面端的“手绘路线”重新设计为
@@ -31,7 +31,9 @@ FunSportWorld 的 Android 移植与二次开发版本：登录运动世界校园
 - **[@L1Xu4n](https://github.com/L1Xu4n)** — 提出接入高德地图 API 生成真实道路的改进方案，
   上游据此实现校园环；本项目的“应用到方案”手绘路线也基于同一思路。
 
-Android 移植版由 **<YOUR NAME / GITHUB HANDLE>** 维护（发布前请替换）。
+Android 移植版由 **mika（GitHub: [fumi1096](https://github.com/fumi1096)）** 维护。
+
+当前版本：**1.1.2（versionCode 4）**。
 上游许可证原文与修改说明见 [LICENSE](LICENSE)、[NOTICE](NOTICE) 与
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
@@ -52,8 +54,11 @@ Android 移植版由 **<YOUR NAME / GITHUB HANDLE>** 维护（发布前请替换
 
 ### 手绘路线（触屏化）
 
-- 单击地图加点；至少 3 点后自动闭合，并用 Catmull-Rom 平滑成跑步轨迹。
-- 拖动蓝色标点微调、长按删除、撤销/重做。
+- **“加点”模式：单击地图任意位置都会加点**（包括已有点附近）；至少 3 点后自动闭合，
+  并用 Catmull-Rom 平滑成跑步轨迹。
+- 需要点选/拖动标点时切到 **“调整”模式**：点蓝点选中，拖动微调，长按删除；撤销/重做
+  在两个模式都可用。
+- 地图平移需要明显拖动；手指轻点或轻微抖动仍按点击处理，不会被误判为拖动地图。
 - 按标点顺序检查打卡点覆盖，显示未覆盖点位。
 - 草稿 500 ms 防抖自动保存；进程重启后恢复，并自动把视野适配到已有草稿。
 - 保存到本机路线库：命名、备注、默认路线、重命名、复制、删除。
@@ -146,14 +151,27 @@ push / PR 时执行 `assembleDebug` + `testDebugUnitTest`，并上传 debug APK 
 推荐从 GitHub **Releases** 下载 APK（仓库源码不提交二进制）。
 
 ```bash
-adb install -r FunSportWorld-Android-1.1.0-debug.apk
+adb install -r FunSportWorld-Android-1.1.2-debug.apk
 ```
 
-如果手机上已有旧版本且无法覆盖，请先卸载“FunSportWorld 安卓”再安装。登录页标题会显示
-`· v1.1.0`，可用来确认版本。
+登录页标题会显示 `· v1.1.2`，可用来确认版本。
 
 > 本仓库附带的 `dist/` 仅是本机测试包，已在 `.gitignore` 中忽略；发布时请把 APK
 > 放到 GitHub Release，不要 commit 进仓库。
+
+### 升级时保留设备信息与登录状态
+
+- **请覆盖安装，不要卸载、不要清除数据。** 同一签名的 APK 覆盖升级只替换程序文件，
+  Android 会保留应用私有目录 `files/funsport/`，其中的 `identity.json`（设备指纹）、
+  `session.json`（登录会话）与配置不会丢失，登录状态和设备身份保持不变。
+- 推荐：`adb install -r FunSportWorld-Android-1.1.2-debug.apk`，或在文件管理器里直接
+  点击新版 APK 覆盖安装。
+- **不要**使用 `adb uninstall`、`adb shell pm clear` 或系统“清除数据”；这些会删除
+  `identity.json` / `session.json`，等同于换设备并丢失登录状态。
+- 只有签名冲突（安装提示 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`）才需要卸载；卸载会丢
+  数据。正式分发请固定使用同一个 release keystore，并把它排除在仓库之外。
+- 从旧 debug 包升级时，本仓库所有 debug 构建都使用同一个公开 debug keystore，因此可以
+  直接覆盖安装。
 
 ---
 
@@ -252,7 +270,7 @@ GT4 极验在弱网下的稳定性。
 | 文件 | 内容 |
 | --- | --- |
 | [`docs/screenshots/01-map.png`](docs/screenshots/01-map.png) | 地图首页 |
-| [`docs/screenshots/02-editor.png`](docs/screenshots/02-editor.png) | 手绘路线编辑（4 点、2.79 km、自动平滑） |
+| [`docs/screenshots/02-editor.png`](docs/screenshots/02-editor.png) | 手绘路线编辑（4 点、3.12 km、选中标点、右下角缩放按钮） |
 | [`docs/screenshots/03-routes.png`](docs/screenshots/03-routes.png) | 路线库 + 自动保存草稿 |
 | [`docs/screenshots/04-plan.png`](docs/screenshots/04-plan.png) | 生成方案参数页 |
 | [`docs/screenshots/05-login.png`](docs/screenshots/05-login.png) | 登录页（服务器业务错误提示） |
@@ -265,7 +283,8 @@ GT4 极验在弱网下的稳定性。
 - 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)
 - 安全报告：[SECURITY.md](SECURITY.md)
 - 版本记录：[CHANGELOG.md](CHANGELOG.md)
+- v1.1.2 发布说明：[docs/RELEASE_NOTES_v1.1.2.md](docs/RELEASE_NOTES_v1.1.2.md)
 - 上游同步说明：[docs/UPSTREAM_SYNC.md](docs/UPSTREAM_SYNC.md)
 - 开源前检查清单：[docs/OPEN_SOURCE_CHECKLIST.md](docs/OPEN_SOURCE_CHECKLIST.md)
 
-当前版本 **1.1.0**（versionCode 2）。
+当前版本 **1.1.2**（versionCode 4）。

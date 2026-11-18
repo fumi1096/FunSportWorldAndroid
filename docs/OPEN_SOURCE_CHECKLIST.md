@@ -2,12 +2,12 @@
 
 按顺序执行即可把 `FunSportWorldAndroid/` 作为独立 GitHub 仓库发布。
 
-## 1. 替换占位符
+## 1. 检查署名
 
-- [ ] `LICENSE` 第一行：`<YOUR NAME / GITHUB HANDLE>` → 你的名字或 GitHub 昵称
-- [ ] `AUTHORS.md`：维护者名字、GitHub 地址
-- [ ] `README.md`：徽章/源码地址中的 `<your-github>`（当前 README 为占位）
-- [ ] `AboutScreen.kt`：本移植版源码地址（占位 `github.com/<your-github>/...`）
+- [x] `LICENSE`：mika (GitHub: fumi1096)
+- [x] `AUTHORS.md`：维护者名字、GitHub 地址
+- [x] `README.md`：维护者与仓库地址
+- [x] `AboutScreen.kt`：本移植版源码地址 `github.com/fumi1096/FunSportWorldAndroid`
 
 ## 2. 清理敏感/本机文件
 
@@ -33,8 +33,8 @@ Get-ChildItem -Recurse -File | Select-String -Pattern 'ghp_|sk-|AKIA|identity\.j
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ```
 
-确认 `dist/FunSportWorld-Android-1.1.0-debug.apk`（仅本机）可安装，登录页显示
-`v1.1.0` 与“登录位置（校园基准点）”。
+确认 `dist/FunSportWorld-Android-1.1.2-debug.apk`（仅本机）可安装，登录页显示
+`v1.1.2` 与“登录位置（校园基准点）”。
 
 ## 4. 创建仓库并推送
 
@@ -44,9 +44,9 @@ Get-ChildItem -Recurse -File | Select-String -Pattern 'ghp_|sk-|AKIA|identity\.j
 git init
 git add .
 git status          # 确认没有 local.properties / dist / build / 非 debug keystore
-git commit -m "feat: FunSportWorld Android 1.1.0"
+git commit -m "feat: FunSportWorld Android 1.1.2"
 git branch -M main
-git remote add origin https://github.com/<your-github>/FunSportWorldAndroid.git
+git remote add origin https://github.com/fumi1096/FunSportWorldAndroid.git
 git push -u origin main
 ```
 
@@ -60,7 +60,7 @@ git push -u origin main
 
 ## 6. 发布 APK
 
-- 在 GitHub **Releases** 新建 `v1.1.0`，上传 `dist/FunSportWorld-Android-1.1.0-debug.apk`
+- 在 GitHub **Releases** 新建 `v1.1.2`，上传 `dist/FunSportWorld-Android-1.1.2-debug.apk`
   作为 release asset（不要提交进 git）。
 - Release 说明中附：
   - 上游 FunSportWorld 链接与 CC BY-NC 4.0 声明
@@ -76,3 +76,4 @@ git push -u origin main
 - 必须保留上游署名：YanamiNeko / FunSportWorld、NekoSportsWorldTool、@L1Xu4n。
 - 不要移除 `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md` 与 `LICENSES/`。
 - 高德瓦片/服务不是开源数据，注意高德服务条款；不要把瓦片缓存提交到仓库。
+

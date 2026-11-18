@@ -12,11 +12,10 @@
 
 ## Android 移植版
 
-- **<YOUR NAME / GITHUB HANDLE>** — 安卓移植、Compose UI、Chaquopy 桥接、手绘路线、
+- **mika（fumi1096）** — 安卓移植、Compose UI、Chaquopy 桥接、手绘路线、
   定位、构建与测试
-  - GitHub: https://github.com/<your-github>
-  - 发布前请把占位符替换成你的名字/GitHub 主页，并同步修改 `LICENSE`、`README.md`
-    与 `AboutScreen.kt` 中的源码地址。
+  - GitHub: https://github.com/fumi1096
+  - 仓库: https://github.com/fumi1096/FunSportWorldAndroid
 
 贡献者名单可通过 Pull Request 追加；提交贡献即表示同意按本仓库的
 CC BY-NC 4.0 许可发布。

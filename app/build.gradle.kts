@@ -13,8 +13,8 @@ android {
         applicationId = "com.funsportworld.android"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 4
+        versionName = "1.1.2"
 
         ndk {
             // Python 3.12 only supports 64-bit ABIs.

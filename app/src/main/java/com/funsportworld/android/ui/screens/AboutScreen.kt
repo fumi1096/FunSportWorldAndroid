@@ -70,7 +70,7 @@ fun AboutScreen(
                 InfoRow(label = "上游项目", value = "FunSportWorld（Python 桌面端）")
                 InfoRow(label = "许可协议", value = "CC BY-NC 4.0（署名 · 非商业）")
                 InfoRow(label = "应用版本", value = BuildConfig.VERSION_NAME)
-                InfoRow(label = "本移植版源码", value = "github.com/<your-github>/FunSportWorldAndroid")
+                InfoRow(label = "本移植版源码", value = "github.com/fumi1096/FunSportWorldAndroid")
                 DividerSoft()
                 RowSpace(8)
                 Text(
@@ -128,6 +128,16 @@ fun AboutScreen(
                 InfoRow(label = "应用版本", value = BuildConfig.VERSION_NAME)
                 InfoRow(label = "客户端", value = "Android · Kotlin + Jetpack Compose")
                 InfoRow(label = "上游许可", value = "CC BY-NC 4.0")
+            }
+
+            RowSpace(12)
+            SectionCard(title = "升级提示") {
+                Text(
+                    text = "请覆盖安装新版本，不要卸载或清除应用数据。覆盖升级会保留本机设备身份" +
+                        "（identity.json）和登录状态（session.json）；卸载、清除数据会删除它们。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Spacer(Modifier.height(28.dp))
         }

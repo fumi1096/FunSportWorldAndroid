@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.funsportworld.android.BuildConfig
 import com.funsportworld.android.data.AccountRow
 import com.funsportworld.android.location.LocationSetup
 import com.funsportworld.android.location.PhoneLocation
@@ -195,6 +196,22 @@ fun SettingsScreen(
                             onClick = { vm.logout() },
                             enabled = !busy,
                         )
+                        if (snapshot.hasPassword) {
+                            RowSpace(4)
+                            TextAction(
+                                text = "用保存的密码重新登录",
+                                onClick = {
+                                    vm.login(snapshot.username, "", snapshot.remember)
+                                },
+                                enabled = !busy,
+                            )
+                            Text(
+                                text = "同一账号在其它客户端登录后，本机会话会失效；" +
+                                    "这里可免输密码重新登录，并顶掉对方会话。",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     } else {
                         Text(
                             text = "当前没有可用会话。登录后才能读取打卡点、生成方案和查看跑步记录。",
@@ -463,7 +480,7 @@ fun SettingsScreen(
 
                 // ── 关于 ───────────────────────────────────────────────
                 RowSpace(12)
-                SectionCard(title = "关于", subtitle = "版本 1.0.0") {
+                SectionCard(title = "关于", subtitle = "版本 ${BuildConfig.VERSION_NAME}") {
                     SettingsRow(
                         title = "关于本应用",
                         subtitle = "开源许可、致谢与使用声明",

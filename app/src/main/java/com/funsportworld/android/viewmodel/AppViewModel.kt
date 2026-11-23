@@ -116,20 +116,35 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun login(username: String, password: String, remember: Boolean) {
-        if (username.isBlank()) {
+        val cleanUsername = username.trim()
+        if (cleanUsername.isBlank()) {
             notify("请填写账号", true)
             return
         }
-        if (password.isBlank()) {
-            notify("请填写密码", true)
+        val current = stateFlow.value.settings
+        // The Python core can fall back to the password saved on this device
+        // when the caller passes an empty password for the same account.
+        val savedPasswordAvailable = password.isBlank() &&
+            current?.hasPassword == true &&
+            current?.remember == true &&
+            cleanUsername == current?.username
+        if (password.isBlank() && !savedPasswordAvailable) {
+            notify("请填写密码；已保存密码的账号可留空直接登录", true)
             return
         }
-        runBusy("正在登录…") {
-            val result = bridge.login(username.trim(), password)
+        val usedSavedPassword = password.isBlank()
+        runBusy(if (usedSavedPassword) "正在使用保存的密码登录…" else "正在登录…") {
+            val result = bridge.login(cleanUsername, password)
             val snapshot = stateFrom(result)
             snapshot?.let { applySettings(it) }
-            runCatching { bridge.saveCredentials(username.trim(), password, remember) }
-            notify("登录成功")
+            // Never overwrite a stored password with an empty one. If the user
+            // explicitly unchecked "remember", clear the old password instead.
+            if (!usedSavedPassword) {
+                runCatching { bridge.saveCredentials(cleanUsername, password, remember) }
+            } else if (!remember) {
+                runCatching { bridge.saveCredentials(cleanUsername, "", false) }
+            }
+            notify(if (usedSavedPassword) "已使用保存的密码登录" else "登录成功")
             refreshSettings()
         }
     }

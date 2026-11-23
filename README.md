@@ -4,7 +4,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-blue)
 ![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4)
 ![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-lightgrey)
-![Version](https://img.shields.io/badge/version-1.1.2-blue)
+![Version](https://img.shields.io/badge/version-1.1.3-blue)
 
 FunSportWorld 的 Android 移植与二次开发版本：登录运动世界校园版、读取校园打卡点、
 按学校策略生成跑步方案、预览/提交、查看跑步记录，并把桌面端的“手绘路线”重新设计为
@@ -33,7 +33,7 @@ FunSportWorld 的 Android 移植与二次开发版本：登录运动世界校园
 
 Android 移植版由 **mika（GitHub: [fumi1096](https://github.com/fumi1096)）** 维护。
 
-当前版本：**1.1.2（versionCode 4）**。
+当前版本：**1.1.3（versionCode 5）**。
 上游许可证原文与修改说明见 [LICENSE](LICENSE)、[NOTICE](NOTICE) 与
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
@@ -51,6 +51,14 @@ Android 移植版由 **mika（GitHub: [fumi1096](https://github.com/fumi1096)）
   登录页显示当前坐标，可重新定位。
 - “我的 → 校园与时间”可手动修改纬度/经度，也可“从已读取打卡点计算中心”。
 - 定位只用于填写基准点，不会由应用上传。
+
+### 登录与多端
+
+- 勾选“记住密码”后，密码保存在本机；再次进入登录页时密码可留空，按钮会变为
+  **“使用已保存密码登录”**，一键重新登录。
+- 同一账号在其它客户端登录后，本机会话会失效；到 **我的 → 账号 → 用保存的密码重新登录**
+  即可免输密码恢复会话，并顶掉对方客户端。
+- 密码仅在勾选“记住密码”时保存；取消勾选并保存会清除本机密码。
 
 ### 手绘路线（触屏化）
 
@@ -151,10 +159,10 @@ push / PR 时执行 `assembleDebug` + `testDebugUnitTest`，并上传 debug APK 
 推荐从 GitHub **Releases** 下载 APK（仓库源码不提交二进制）。
 
 ```bash
-adb install -r FunSportWorld-Android-1.1.2-debug.apk
+adb install -r FunSportWorld-Android-1.1.3-debug.apk
 ```
 
-登录页标题会显示 `· v1.1.2`，可用来确认版本。
+登录页标题会显示 `· v1.1.3`，可用来确认版本。
 
 > 本仓库附带的 `dist/` 仅是本机测试包，已在 `.gitignore` 中忽略；发布时请把 APK
 > 放到 GitHub Release，不要 commit 进仓库。
@@ -164,7 +172,7 @@ adb install -r FunSportWorld-Android-1.1.2-debug.apk
 - **请覆盖安装，不要卸载、不要清除数据。** 同一签名的 APK 覆盖升级只替换程序文件，
   Android 会保留应用私有目录 `files/funsport/`，其中的 `identity.json`（设备指纹）、
   `session.json`（登录会话）与配置不会丢失，登录状态和设备身份保持不变。
-- 推荐：`adb install -r FunSportWorld-Android-1.1.2-debug.apk`，或在文件管理器里直接
+- 推荐：`adb install -r FunSportWorld-Android-1.1.3-debug.apk`，或在文件管理器里直接
   点击新版 APK 覆盖安装。
 - **不要**使用 `adb uninstall`、`adb shell pm clear` 或系统“清除数据”；这些会删除
   `identity.json` / `session.json`，等同于换设备并丢失登录状态。
@@ -283,8 +291,8 @@ GT4 极验在弱网下的稳定性。
 - 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)
 - 安全报告：[SECURITY.md](SECURITY.md)
 - 版本记录：[CHANGELOG.md](CHANGELOG.md)
-- v1.1.2 发布说明：[docs/RELEASE_NOTES_v1.1.2.md](docs/RELEASE_NOTES_v1.1.2.md)
+- v1.1.3 发布说明：[docs/RELEASE_NOTES_v1.1.3.md](docs/RELEASE_NOTES_v1.1.3.md)
 - 上游同步说明：[docs/UPSTREAM_SYNC.md](docs/UPSTREAM_SYNC.md)
 - 开源前检查清单：[docs/OPEN_SOURCE_CHECKLIST.md](docs/OPEN_SOURCE_CHECKLIST.md)
 
-当前版本 **1.1.2**（versionCode 4）。
+当前版本 **1.1.3**（versionCode 5）。

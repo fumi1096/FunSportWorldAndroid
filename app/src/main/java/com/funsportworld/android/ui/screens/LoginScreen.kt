@@ -139,6 +139,12 @@ fun LoginScreen(
         seeded = true
     }
 
+    // Saved password belongs to the account shown in settings; only offer the
+    // one-tap path for that exact account, never for an arbitrary username.
+    val savedPasswordAvailable = settings?.hasPassword == true &&
+        settings?.remember == true &&
+        username.trim() == settings?.username
+
     // 只展示进入本页之后产生的提示，避免把上一页的旧消息重复提示一次。
     LaunchedEffect(state.message?.id) {
         val message = state.message ?: return@LaunchedEffect
@@ -246,6 +252,22 @@ fun LoginScreen(
                         )
                     },
                 )
+                if (savedPasswordAvailable) {
+                    RowSpace(4)
+                    Text(
+                        text = "本机已保存该账号密码，密码留空直接点下方按钮即可登录；" +
+                            "可用来恢复被其它客户端顶掉的会话。",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else if (settings?.hasPassword == true) {
+                    RowSpace(4)
+                    Text(
+                        text = "本机已保存 ${settings.username} 的密码；登录该账号时可留空密码。",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             RowSpace(12)
@@ -300,7 +322,11 @@ fun LoginScreen(
 
             RowSpace(16)
             PrimaryAction(
-                text = if (busy) state.busyLabel.ifBlank { "正在登录…" } else "登录",
+                text = when {
+                    busy -> state.busyLabel.ifBlank { "正在登录…" }
+                    savedPasswordAvailable && password.isBlank() -> "使用已保存密码登录"
+                    else -> "登录"
+                },
                 onClick = {
                     notice = null
                     submittedAt = System.nanoTime()
@@ -313,7 +339,8 @@ fun LoginScreen(
             SecondaryAction(text = "返回", onClick = onBack, enabled = !busy)
             RowSpace(12)
             Text(
-                text = "登录会向运动世界校园版服务器校验账号；本应用不是官方客户端，仅供学习研究。",
+                text = "登录会向运动世界校园版服务器校验账号；本应用不是官方客户端，仅供学习研究。" +
+                    "同一账号在其它客户端登录后，本机会话会失效；再次登录会顶掉对方会话。",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

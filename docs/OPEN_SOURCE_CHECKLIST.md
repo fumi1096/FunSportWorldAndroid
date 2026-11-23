@@ -33,8 +33,8 @@ Get-ChildItem -Recurse -File | Select-String -Pattern 'ghp_|sk-|AKIA|identity\.j
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ```
 
-确认 `dist/FunSportWorld-Android-1.1.2-debug.apk`（仅本机）可安装，登录页显示
-`v1.1.2` 与“登录位置（校园基准点）”。
+确认 `dist/FunSportWorld-Android-1.1.3-debug.apk`（仅本机）可安装，登录页显示
+`v1.1.3` 与“登录位置（校园基准点）”。
 
 ## 4. 创建仓库并推送
 

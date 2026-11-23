@@ -5,7 +5,7 @@
 ## 安装
 
 - 文件：`FunSportWorld-Android-1.1.3-debug.apk`
-- SHA-256：构建后补充
+- SHA-256：`87de4dba996e61d3afcfc3a3ac1085e1021975406226964636062f3423a70d28`
 - 要求：Android 7.0（API 24）及以上；arm64-v8a / x86_64
 
 **请覆盖安装，不要卸载或清除数据。** 同一签名覆盖升级会保留
